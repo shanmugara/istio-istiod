@@ -40,18 +40,18 @@ pipeline {
                   for f in $FILES; do
                     echo "Processing $f"
 
-                    yq -i '
+                    YQ_NO_LOCK=true yq -i '
                       .. | select(tag == "!!map") |
                       with(.image.repository?; . = "'$LOCAL_REPO'/" + (. | split("/")[-1]))
                     ' "$f"
 
-                    yq -i '
+                    YQ_NO_LOCK=true yq -i '
                       .. | select(tag == "!!str" and (. | test("^.*/.*:.*$"))) |
                       sub("^[^/]+/([^:]+):", "'$LOCAL_REPO'/\\1:")
                     ' "$f"
 
                     # Rewrite hub: fields if non-empty
-                    yq -i '
+                    YQ_NO_LOCK=true yq -i '
                       .. |
                       select(tag == "!!map") |
                       with(.hub; if . != "" and . != null then "'"$LOCAL_REPO"'" else . end)
