@@ -58,7 +58,7 @@ pipeline {
 
                     YQ_NO_LOCK=true yq -i '
                       # 3) Safely rewrite ONLY global.hub
-                      with(.global.hub;
+                      with(._internal_defaults_do_not_set.global.hub;
                         if . != "" and . != null then "'"$LOCAL_REPO"'" else . end
                       )
                     ' "$f" || true
