@@ -36,6 +36,7 @@ pipeline {
             steps {
                 // Single shell script - run Python script (ruamel.yaml) that updates files safely
                 sh '''
+                    #!/usr/bin/env bash
                     set -euo pipefail
 
                     # Ensure python deps available; install locally to avoid system changes
@@ -56,6 +57,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'aa53f87f-dcf2-40cb-b44b-ed68bb9f0271', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                     sh '''
+                        #!/usr/bin/env bash
                         set -euo pipefail
 
                         # Configure git
