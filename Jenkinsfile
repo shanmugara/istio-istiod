@@ -43,19 +43,19 @@ pipeline {
                     YQ_NO_LOCK=true yq -i '
                       .. | select(tag == "!!map") |
                       with(.image.repository?; . = "'$LOCAL_REPO'/" + (. | split("/")[-1]))
-                    ' "$f"
+                    ' "$f" || true
 
                     YQ_NO_LOCK=true yq -i '
                       .. | select(tag == "!!str" and (. | test("^.*/.*:.*$"))) |
                       sub("^[^/]+/([^:]+):", "'$LOCAL_REPO'/\\1:")
-                    ' "$f"
+                    ' "$f" || true
 
                     # Rewrite hub: fields if non-empty
                     YQ_NO_LOCK=true yq -i '
                       .. |
                       select(tag == "!!map") |
                       with(.hub; if . != "" and . != null then "'"$LOCAL_REPO"'" else . end)
-                    ' "$f"
+                    ' "$f" || true
                   done
                 '''
             }
