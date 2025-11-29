@@ -40,28 +40,15 @@ pipeline {
                   for f in $FILES; do
                     echo "Processing $f"
 
-                    YQ_NO_LOCK=true yq -i '
-                      # 1) Rewrite .image.repository everywhere
-                      .. |
-                      select(tag == "!!map") |
-                      with(.image.repository?;
-                        if . != null then "'"$LOCAL_REPO"'/" + (. | split("/")[-1]) else . end
-                      )
-                    ' "$f" || true
+                    echo "Processing $f"
+                            # Rewrite .image.repository
+                            yq w -i "$f" '**.image.repository' "$LOCAL_REPO"
 
-                    YQ_NO_LOCK=true yq -i '
-                      # 2) Rewrite any full "image: repo/name:tag" string
-                      .. |
-                      select(tag == "!!str" and (. | test("^.*/.*:.*$"))) |
-                      sub("^[^/]+/([^:]+):", "'"$LOCAL_REPO"'/\\1:")
-                    ' "$f" || true
+                            # Rewrite global.hub
+                            yq w -i "$f" 'global.hub' "$LOCAL_REPO"
 
-                    YQ_NO_LOCK=true yq -i '
-                      # 3) Safely rewrite ONLY global.hub
-                      with(._internal_defaults_do_not_set.global.hub;
-                        if . != "" and . != null then "'"$LOCAL_REPO"'" else . end
-                      )
-                    ' "$f" || true
+                            # Rewrite full image strings (image: registry/name:tag)
+                            sed -i "s#image: [^/]*\/#image: $LOCAL_REPO/#g" "$f"
                   done
                 '''
             }
