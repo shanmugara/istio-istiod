@@ -35,7 +35,7 @@ pipeline {
         stage('Rewrite Image Paths') {
             steps {
                 // Single shell script - run Python script (ruamel.yaml) that updates files safely
-                sh '''
+                sh """
                     bash -lc <<'BASH'
                     set -euo pipefail
 
@@ -47,7 +47,7 @@ pipeline {
                     # Run script (it will update files in-place). Use --dry-run to preview
                     python3 scripts/update_images.py || true
                     BASH
-                    '''
+                    """
             }
         }
 
@@ -57,7 +57,7 @@ pipeline {
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'aa53f87f-dcf2-40cb-b44b-ed68bb9f0271', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                    sh '''
+                    sh """
                         bash -lc <<'BASH'
                         set -euo pipefail
 
@@ -102,7 +102,7 @@ pipeline {
                           echo "Open a pull request from ${BRANCH_NAME_LOCAL} into ${BRANCH_NAME} in your Git host."
                         fi
                         BASH
-                        '''
+                        """
                 }
             }
         }
