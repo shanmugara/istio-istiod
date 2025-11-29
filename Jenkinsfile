@@ -36,7 +36,7 @@ pipeline {
             steps {
                 // Single shell script - run Python script (ruamel.yaml) that updates files safely
                 sh '''
-                    #!/usr/bin/env bash
+                    bash -lc <<'BASH'
                     set -euo pipefail
 
                     # Ensure python deps available; install locally to avoid system changes
@@ -46,6 +46,7 @@ pipeline {
                     export LOCAL_REPO="myrepo.local"
                     # Run script (it will update files in-place). Use --dry-run to preview
                     python3 scripts/update_images.py || true
+                    BASH
                     '''
             }
         }
@@ -57,7 +58,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'aa53f87f-dcf2-40cb-b44b-ed68bb9f0271', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                     sh '''
-                        #!/usr/bin/env bash
+                        bash -lc <<'BASH'
                         set -euo pipefail
 
                         # Configure git
@@ -100,6 +101,7 @@ pipeline {
                           echo "gh CLI not available; pushed branch ${BRANCH_NAME_LOCAL}."
                           echo "Open a pull request from ${BRANCH_NAME_LOCAL} into ${BRANCH_NAME} in your Git host."
                         fi
+                        BASH
                         '''
                 }
             }
