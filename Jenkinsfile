@@ -41,20 +41,26 @@ pipeline {
                     echo "Processing $f"
 
                     YQ_NO_LOCK=true yq -i '
-                      .. | select(tag == "!!map") |
-                      with(.image.repository?; . = "'$LOCAL_REPO'/" + (. | split("/")[-1]))
-                    ' "$f" || true
-
-                    YQ_NO_LOCK=true yq -i '
-                      .. | select(tag == "!!str" and (. | test("^.*/.*:.*$"))) |
-                      sub("^[^/]+/([^:]+):", "'$LOCAL_REPO'/\\1:")
-                    ' "$f" || true
-
-                    # Rewrite hub: fields if non-empty
-                    YQ_NO_LOCK=true yq -i '
+                      # 1) Rewrite .image.repository everywhere
                       .. |
                       select(tag == "!!map") |
-                      with(.hub; if . != "" and . != null then "'"$LOCAL_REPO"'" else . end)
+                      with(.image.repository?;
+                        if . != null then "'"$LOCAL_REPO"'/" + (. | split("/")[-1]) else . end
+                      )
+                    ' "$f" || true
+
+                    YQ_NO_LOCK=true yq -i '
+                      # 2) Rewrite any full "image: repo/name:tag" string
+                      .. |
+                      select(tag == "!!str" and (. | test("^.*/.*:.*$"))) |
+                      sub("^[^/]+/([^:]+):", "'"$LOCAL_REPO"'/\\1:")
+                    ' "$f" || true
+
+                    YQ_NO_LOCK=true yq -i '
+                      # 3) Safely rewrite ONLY global.hub
+                      with(.global.hub;
+                        if . != "" and . != null then "'"$LOCAL_REPO"'" else . end
+                      )
                     ' "$f" || true
                   done
                 '''
