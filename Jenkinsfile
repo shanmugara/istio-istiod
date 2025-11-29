@@ -42,13 +42,19 @@ pipeline {
 
                     echo "Processing $f"
                             # Rewrite .image.repository
+                            sh '''
                             yq w -i "$f" '**.image.repository' "$LOCAL_REPO"
+                            '''
 
                             # Rewrite global.hub
+                            sh '''
                             yq w -i "$f" 'global.hub' "$LOCAL_REPO"
+                           '''
 
                             # Rewrite full image strings (image: registry/name:tag)
+                            sh '''
                             sed -i "s#image: [^/]*\/#image: $LOCAL_REPO/#g" "$f"
+                            '''
                   done
                 '''
             }
